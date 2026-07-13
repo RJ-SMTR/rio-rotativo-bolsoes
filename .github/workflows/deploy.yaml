@@ -46,6 +46,7 @@ env:
   SERVICE: ${{ inputs.service }}
   POD_NAME: ${{ inputs.pod_name }}
   SECRET_NAME: ${{ inputs.secret_name }}
+  DOTENV: ${{ secrets.DOTENV }}
 
 jobs:
   deploy:
@@ -79,6 +80,13 @@ jobs:
         run: |-
           curl -sfL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz | tar -xvz
           chmod u+x ./kustomize
+
+      # Base64-encode the .env file so it can be substituted into k8s/secret.yaml
+      - name: Prepare env secret
+        env:
+          ENV_FILE: ${{ secrets.DOTENV }}
+        run: |-
+          echo "ENV_FILE_B64=$(printf '%s' "$ENV_FILE" | base64 -w0)" >> "$GITHUB_ENV"
 
       # Deploy the Docker image to the GKE cluster
       - name: Deploy

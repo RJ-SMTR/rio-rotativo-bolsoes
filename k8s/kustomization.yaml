@@ -6,3 +6,4 @@ resources:
   - issuer.yaml
   - ingress.yaml
   - namespace.yaml
+  - secret.yaml

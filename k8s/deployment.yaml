@@ -22,4 +22,13 @@ spec:
           image: ${GAR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE}:${TAG}
           ports:
             - containerPort: 80
+          volumeMounts:
+            - name: env
+              mountPath: /app/.env
+              subPath: .env
+              readOnly: true
+      volumes:
+        - name: env
+          secret:
+            secretName: env
       restartPolicy: Always
