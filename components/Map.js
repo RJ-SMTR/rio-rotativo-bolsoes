@@ -365,7 +365,7 @@ export default function MapComponent() {
 
                 <div style={{ overflowY: 'auto', padding: 12, flex: 1 }}>
                     {!bolsoesGeoJSON && !error && (
-                        <p style={{ margin: 0, color: '#6b7280', fontSize: 14 }}>Carregando informações...</p>
+                        <p style={{ margin: 0, color: '#Fff', fontSize: 14 }}>Carregando informações...</p>
                     )}
 
                     {error && (
@@ -400,7 +400,7 @@ export default function MapComponent() {
                                 background: isSelected ? '#0DB1E3' : '',
                             cursor: 'pointer'
                         }}>
-                            <div style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>
+                            <div style={{ fontSize: 11, fontWeight: 500, color: '#fff' }}>
                                 {bolsao.name}
                             </div>
                         </button>
@@ -453,13 +453,30 @@ export default function MapComponent() {
                         >
                             <div style={{ fontSize: 12, color: '#111827', lineHeight: 1.5 }}>
                                 <div style={{ fontWeight: 700, marginBottom: 7 }}>{selectedBolsao.name}</div>
+                                {Array.isArray(selectedBolsao.feature?.properties?.perfis_funcionamento) &&
+                                    selectedBolsao.feature.properties.perfis_funcionamento.length > 0 && (
+                                    <div style={{ fontWeight: 700, marginBottom: 7 }}>
+                                        {selectedBolsao.feature.properties.perfis_funcionamento.join(', ')}
+                                    </div>
+                                )}
                                 <div><strong>LOGRADOURO:</strong> {selectedBolsao.feature?.properties?.logradouro ?? 'N/A'}</div>
                                 <div><strong>VAGAS DISPONÍVEIS:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_total ?? 'N/A'}</div>
                                 <div><strong>VAGAS PARA MOTOS:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_moto ?? 'N/A'}</div>
                                 <div><strong>VAGAS IDOSO (5%):</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_idoso ?? 'N/A'}</div>
                                 <div><strong>VAGA PCD (2%):</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_pcd ?? 'N/A'}</div>
-                                <div><strong>VAGAS CONUNS:</strong> {selectedBolsao.feature?.properties?.vagas_comuns ?? 'N/A'}</div>
                                 <div><strong>TEMPO DE PERMANÊNCIA:</strong> {selectedBolsao.feature?.properties?.tempo_permanencia_hora ?? 'N/A'}h</div>
+                                {selectedBolsao.feature?.properties?.description && (
+                                    <div style={{ marginTop: 8 }}>
+                                        <a
+                                            href={selectedBolsao.feature.properties.description}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            style={{ color: '#0f766e', textDecoration: 'none', fontWeight: 600 }}
+                                        >
+                                            Ver referência
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         </Popup>
                     )}
