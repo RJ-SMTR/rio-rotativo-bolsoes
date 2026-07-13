@@ -1,7 +1,8 @@
 "use client";
 
 import React from 'react';
-import Map, { Layer, Source } from 'react-map-gl/maplibre';
+import Map, { Layer, NavigationControl, Source } from 'react-map-gl/maplibre';
+import Image from 'next/image';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 export default function MapComponent() {
@@ -53,7 +54,7 @@ export default function MapComponent() {
     const initialViewState = {
         longitude:  -43.211279,
         latitude: -22.970389,
-        zoom: 14,
+        zoom: 15,
         pitch: 0, 
     };
 
@@ -163,22 +164,76 @@ export default function MapComponent() {
         return [[minLng, minLat], [maxLng, maxLat]];
     }
 
+    function getBoundsFromFeatures(features) {
+        if (!Array.isArray(features) || features.length === 0) {
+            return null;
+        }
+
+        let minLng = Infinity;
+        let minLat = Infinity;
+        let maxLng = -Infinity;
+        let maxLat = -Infinity;
+
+        features.forEach((feature) => {
+            const bounds = getBoundsFromGeometry(feature?.geometry);
+            if (!bounds) {
+                return;
+            }
+
+            minLng = Math.min(minLng, bounds[0][0]);
+            minLat = Math.min(minLat, bounds[0][1]);
+            maxLng = Math.max(maxLng, bounds[1][0]);
+            maxLat = Math.max(maxLat, bounds[1][1]);
+        });
+
+        if (!Number.isFinite(minLng) || !Number.isFinite(minLat) || !Number.isFinite(maxLng) || !Number.isFinite(maxLat)) {
+            return null;
+        }
+
+        return [[minLng, minLat], [maxLng, maxLat]];
+    }
+
+    function goToInitialView() {
+        const map = mapRef.current?.getMap?.();
+        if (!map) {
+            return;
+        }
+
+        map.easeTo({
+            center: [initialViewState.longitude, initialViewState.latitude],
+            zoom: initialViewState.zoom,
+            pitch: initialViewState.pitch,
+            bearing: 0,
+            duration: 800,
+        });
+    }
+
+    function fitAllBolsoes() {
+        const map = mapRef.current?.getMap?.();
+        if (!map) {
+            return;
+        }
+
+        const bounds = getBoundsFromFeatures(bolsoes.map((item) => item.feature));
+        if (!bounds) {
+            return;
+        }
+
+        setSelectedBolsaoId(null);
+        map.fitBounds(bounds, {
+            padding: { top: 60, right: 60, bottom: 60, left: 60 },
+            duration: 800,
+            maxZoom: 15,
+        });
+    }
+
     function handleSelectBolsao(bolsao) {
         const isSameBolsao = bolsao.id === selectedBolsaoId;
         const map = mapRef.current?.getMap?.();
 
         if (isSameBolsao) {
             setSelectedBolsaoId(null);
-
-            if (map) {
-                map.easeTo({
-                    center: [initialViewState.longitude, initialViewState.latitude],
-                    zoom: initialViewState.zoom,
-                    pitch: initialViewState.pitch,
-                    bearing: 0,
-                    duration: 800,
-                });
-            }
+            goToInitialView();
 
             return;
         }
@@ -217,6 +272,52 @@ export default function MapComponent() {
         handleSelectBolsao(bolsao);
     }
 
+    function fieldReferencesName(field) {
+        if (typeof field === 'string') {
+            return field.includes('name');
+        }
+
+        if (Array.isArray(field)) {
+            return field.some((item) => fieldReferencesName(item));
+        }
+
+        return false;
+    }
+
+    function forcePortugueseLabels() {
+        const map = mapRef.current?.getMap?.();
+        if (!map) {
+            return;
+        }
+
+        const style = map.getStyle();
+        const layers = style?.layers;
+
+        if (!Array.isArray(layers)) {
+            return;
+        }
+
+        layers.forEach((layer) => {
+            if (layer.type !== 'symbol') {
+                return;
+            }
+
+            const currentTextField = map.getLayoutProperty(layer.id, 'text-field');
+            if (!currentTextField || !fieldReferencesName(currentTextField)) {
+                return;
+            }
+
+            map.setLayoutProperty(layer.id, 'text-field', [
+                'coalesce',
+                ['get', 'name:pt'],
+                ['get', 'name:pt-BR'],
+                ['get', 'name_pt'],
+                ['get', 'name'],
+                currentTextField,
+            ]);
+        });
+    }
+
     return (
         <div style={{
             width: '100vw',
@@ -234,7 +335,13 @@ export default function MapComponent() {
                 flexDirection: 'column'
             }}>
                 <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #e5e7eb' }}>
-                    <img src='./image.png' width={55} style={{marginBottom: 12}}/>
+                    <Image
+                        src="/image.png"
+                        alt="Logo Rio Rotativo"
+                        width={55}
+                        height={55}
+                        style={{ marginBottom: 12 }}
+                    />
                     <h2 style={{ margin: 0, fontSize: 18, color: '#fff' }}>
                         Estacionamentos Rio Rotativo
                     </h2>
@@ -293,11 +400,13 @@ export default function MapComponent() {
                 <Map
                     ref={mapRef}
                     initialViewState={initialViewState}
-                    mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+                    mapStyle="https://tiles.openfreemap.org/styles/bright"
                     style={{ width: '100%', height: '100%' }}
                     interactiveLayerIds={['bolsoes-fill', 'bolsoes-outline']}
                     onClick={handleMapClick}
+                    onLoad={forcePortugueseLabels}
                 >
+                    <NavigationControl position="top-right" showCompass={false} />
                     {bolsoesGeoJSONWithIds && (
                         <Source id="bolsoes" type="geojson" data={bolsoesGeoJSONWithIds}>
                             <Layer {...fillLayer} />
@@ -329,6 +438,42 @@ export default function MapComponent() {
                         Carregando mapa...
                     </div>
                 )}
+
+                <div
+                    role="group"
+                    aria-label="Controles do mapa"
+                    style={{
+                        position: 'absolute',
+                        top: 112,
+                        right: 16,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                        zIndex: 10
+                    }}
+                >
+
+                    <button
+                        type="button"
+                        aria-label="Enquadrar todos os bolsoes"
+                        title="Enquadrar todos os bolsoes"
+                        onClick={fitAllBolsoes}
+                        style={{
+                            minWidth: 42,
+                            height: 42,
+                            padding: '0 10px',
+                            borderRadius: 10,
+                            border: '1px solid #d1d5db',
+                            background: '#ffffff',
+                            color: '#0f172a',
+                            fontSize: 24,
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        •
+                    </button>
+                </div>
             </div>
         </div>
     );
