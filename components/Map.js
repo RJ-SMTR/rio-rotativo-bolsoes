@@ -10,6 +10,8 @@ export default function MapComponent() {
     const [error, setError] = React.useState(null);
     const [selectedBolsaoId, setSelectedBolsaoId] = React.useState(null);
     const [selectedPopupLngLat, setSelectedPopupLngLat] = React.useState(null);
+    const [isMobile, setIsMobile] = React.useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
     const mapRef = React.useRef(null);
 
     const bolsoesGeoJSONWithIds = React.useMemo(() => {
@@ -92,6 +94,27 @@ export default function MapComponent() {
 
         return () => {
             cancelled = true;
+        };
+    }, []);
+
+    React.useEffect(() => {
+        if (typeof window === 'undefined') {
+            return undefined;
+        }
+
+        const mediaQuery = window.matchMedia('(max-width: 900px)');
+
+        function handleViewportChange(event) {
+            const mobile = event.matches;
+            setIsMobile(mobile);
+            setIsSidebarOpen(!mobile);
+        }
+
+        handleViewportChange(mediaQuery);
+        mediaQuery.addEventListener('change', handleViewportChange);
+
+        return () => {
+            mediaQuery.removeEventListener('change', handleViewportChange);
         };
     }, []);
 
@@ -247,6 +270,9 @@ export default function MapComponent() {
         }
 
         setSelectedBolsaoId(bolsao.id);
+        if (isMobile) {
+            setIsSidebarOpen(false);
+        }
 
         const bounds = getBoundsFromGeometry(bolsao.feature?.geometry);
         if (!bounds) {
@@ -337,24 +363,51 @@ export default function MapComponent() {
             height: '100dvh',
             display: 'flex',
             background: '#f4f6f8',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            position: 'relative'
         }}>
             <aside style={{
-                width: 320,
-                maxWidth: '80vw',
+                width: isMobile ? 'min(86vw, 340px)' : 320,
+                maxWidth: isMobile ? '86vw' : '80vw',
                 borderRight: '1px solid #d9dee5',
                 background: '#004a80',
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                position: isMobile ? 'absolute' : 'relative',
+                inset: isMobile ? '0 auto 0 0' : 'auto',
+                zIndex: isMobile ? 20 : 1,
+                transform: isMobile ? `translateX(${isSidebarOpen ? '0' : '-100%'})` : 'none',
+                transition: 'transform 200ms ease',
+                boxShadow: isMobile ? '0 8px 20px rgb(0 0 0 / 25%)' : 'none'
             }}>
                 <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #e5e7eb' }}>
-                    <Image
-                        src="/image.png"
-                        alt="Logo Rio Rotativo"
-                        width={75}
-                        height={75}
-                        style={{ marginBottom: 12 }}
-                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Image
+                            src="/image.png"
+                            alt="Logo Rio Rotativo"
+                            width={75}
+                            height={75}
+                            style={{ marginBottom: 12 }}
+                        />
+                        {isMobile && (
+                            <button
+                                type="button"
+                                onClick={() => setIsSidebarOpen(false)}
+                                aria-label="Fechar lista"
+                                style={{
+                                    border: '1px solid #bfdbfe',
+                                    background: '#ffffff',
+                                    color: '#0f172a',
+                                    borderRadius: 6,
+                                    width: 30,
+                                    height: 30,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                x
+                            </button>
+                        )}
+                    </div>
                     <h2 style={{ margin: 0, fontSize: 18, color: '#fff' }}>
                         Estacionamentos Rio Rotativo
                     </h2>
@@ -409,7 +462,47 @@ export default function MapComponent() {
                 </div>
             </aside>
 
+            {isMobile && isSidebarOpen && (
+                <button
+                    type="button"
+                    aria-label="Fechar painel"
+                    onClick={() => setIsSidebarOpen(false)}
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        border: 'none',
+                        background: 'rgb(15 23 42 / 35%)',
+                        zIndex: 15,
+                        cursor: 'pointer'
+                    }}
+                />
+            )}
+
             <div style={{ position: 'relative', flex: 1 }}>
+                {isMobile && !isSidebarOpen && (
+                    <button
+                        type="button"
+                        aria-label="Abrir lista de estacionamentos"
+                        onClick={() => setIsSidebarOpen(true)}
+                        style={{
+                            position: 'absolute',
+                            top: 10,
+                            left: 10,
+                            zIndex: 25,
+                            border: 'none',
+                            borderRadius: 8,
+                            background: '#ffffff',
+                            color: '#0f172a',
+                            padding: '8px 10px',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            boxShadow: '0 2px 8px rgb(0 0 0 / 20%)',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Lista ({bolsoes.length})
+                    </button>
+                )}
                 <Map
                     ref={mapRef}
                     initialViewState={initialViewState}
@@ -498,7 +591,7 @@ export default function MapComponent() {
                     aria-label="Controles do mapa"
                     style={{
                         position: 'absolute',
-                        top: 84,
+                        top: isMobile ? 56 : 84,
                         right: 10,
                         display: 'flex',
                         flexDirection: 'column',
