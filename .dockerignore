@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+build
+coverage
+.git
+.github
+k8s
+*.md
+.env*
+npm-debug.log*
