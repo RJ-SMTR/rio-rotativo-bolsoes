@@ -1,0 +1,21 @@
+name: main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    name: Build and deploy
+    uses: ./.github/workflows/build_deploy.yaml
+    with:
+      environment: production
+      image: riorotativo
+      namespace: riorotativo
+      ingress_name: riorotativo-ingress
+      ingress_url: riorotativo.mobilidade.rio
+      service: riorotativo
+      pod_name: riorotativo
+      secret_name: riorotativo-ingress
+    secrets: inherit
