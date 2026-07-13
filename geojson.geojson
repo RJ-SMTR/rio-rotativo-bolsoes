@@ -117,13 +117,20 @@
             },
             "properties": {
                 "name": "Est. Pq. dos Patins 01",
+                "quantidade_vaga_total": 309,
+                "quantidade_vaga_moto": 77,
+                "quantidade_vaga_idoso": 12,
+                "quantidade_vaga_pcd": 5,
+                "vagas_comuns": 277,
                 "description": "https://drive.google.com/file/d/1jJFWjhYerJ2JbutP1Ac5RfjyBnHFbxj0/view?usp=sharing",
                 "styleUrl": "#poly-A52714-2001-77",
                 "fill-opacity": 0.30196078431372547,
                 "fill": "#a52714",
                 "stroke-opacity": 1,
                 "stroke": "#a52714",
-                "stroke-width": 2.001
+                "stroke-width": 2.001,
+                "logradouro": "AV BORGES DE MEDEIROS",
+                "tempo_permanencia_hora": 2
             }
         },
         {
@@ -228,7 +235,14 @@
                 "fill": "#a52714",
                 "stroke-opacity": 1,
                 "stroke": "#a52714",
-                "stroke-width": 1.2
+                "stroke-width": 1.2,
+                "logradouro": "AV BORGES DE MEDEIROS",
+                "quantidade_vaga_total": 49,
+                "quantidade_vaga_moto": 12,
+                "quantidade_vaga_idoso": 2,
+                "quantidade_vaga_pcd": 1,
+                "vagas_comuns": 44,
+                "tempo_permanencia_hora": 2
             }
         },
         {
@@ -403,7 +417,14 @@
                 "fill": "#097138",
                 "stroke-opacity": 1,
                 "stroke": "#097138",
-                "stroke-width": 2.201
+                "stroke-width": 2.201,
+                "logradouro": "AV BORGES DE MEDEIROS",
+                "quantidade_vaga_total": 93,
+                "quantidade_vaga_moto": 23,
+                "quantidade_vaga_idoso": 4,
+                "quantidade_vaga_pcd": 2,
+                "vagas_comuns": 82,
+                "tempo_permanencia_hora": 2
             }
         },
         {
@@ -578,7 +599,14 @@
                 "fill": "#9c27b0",
                 "stroke-opacity": 1,
                 "stroke": "#9c27b0",
-                "stroke-width": 1.901
+                "stroke-width": 1.901,
+                "logradouro": "AV EPITÁCIO PESSOA",
+                "quantidade_vaga_total": 88,
+                "quantidade_vaga_moto": 22,
+                "quantidade_vaga_idoso": 3,
+                "quantidade_vaga_pcd": 2,
+                "vagas_comuns": 78,
+                "tempo_permanencia_hora": 2
             }
         },
         {
@@ -728,7 +756,14 @@
                 "fill": "#9c27b0",
                 "stroke-opacity": 1,
                 "stroke": "#9c27b0",
-                "stroke-width": 2.201
+                "stroke-width": 2.201,
+                "logradouro": "AV EPITÁCIO PESSOA",
+                "quantidade_vaga_total": 66,
+                "quantidade_vaga_moto": 17,
+                "quantidade_vaga_idoso": 2,
+                "quantidade_vaga_pcd": 1,
+                "vagas_comuns": 59,
+                "tempo_permanencia_hora": 2
             }
         },
         {
@@ -873,7 +908,14 @@
                 "fill": "#f9a825",
                 "stroke-opacity": 1,
                 "stroke": "#f9a825",
-                "stroke-width": 2.501
+                "stroke-width": 2.501,
+                "logradouro": "AV BORGES DE MEDEIROS",
+                "quantidade_vaga_total": 37,
+                "quantidade_vaga_moto": 9,
+                "quantidade_vaga_idoso": 4,
+                "quantidade_vaga_pcd": 3,
+                "vagas_comuns": 28,
+                "tempo_permanencia_hora": 2
             }
         },
         {
@@ -938,7 +980,14 @@
                 "fill": "#f9a825",
                 "stroke-opacity": 1,
                 "stroke": "#f9a825",
-                "stroke-width": 2.601
+                "stroke-width": 2.601,
+                "logradouro": "AV BORGES DE MEDEIROS",
+                "quantidade_vaga_total": 25,
+                "quantidade_vaga_moto": 6,
+                "quantidade_vaga_idoso": 1,
+                "quantidade_vaga_pcd": 1,
+                "vagas_comuns": 22,
+                "tempo_permanencia_hora": 2
             }
         }
     ]
