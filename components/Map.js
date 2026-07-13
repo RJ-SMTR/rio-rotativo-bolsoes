@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import Map, { Layer, NavigationControl, Source } from 'react-map-gl/maplibre';
+import Map, { Layer, NavigationControl, Popup, Source } from 'react-map-gl/maplibre';
 import Image from 'next/image';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -9,6 +9,7 @@ export default function MapComponent() {
     const [bolsoesGeoJSON, setBolsoesGeoJSON] = React.useState(null);
     const [error, setError] = React.useState(null);
     const [selectedBolsaoId, setSelectedBolsaoId] = React.useState(null);
+    const [selectedPopupLngLat, setSelectedPopupLngLat] = React.useState(null);
     const mapRef = React.useRef(null);
 
     const bolsoesGeoJSONWithIds = React.useMemo(() => {
@@ -49,6 +50,11 @@ export default function MapComponent() {
     const selectedBolsao = React.useMemo(
         () => bolsoes.find((item) => item.id === selectedBolsaoId) ?? null,
         [bolsoes, selectedBolsaoId]
+    );
+
+    const totalVagas = React.useMemo(
+        () => bolsoes.reduce((sum, item) => sum + (Number(item?.feature?.properties?.quantidade_vaga_total) || 0), 0),
+        [bolsoes]
     );
 
     const initialViewState = {
@@ -220,6 +226,7 @@ export default function MapComponent() {
         }
 
         setSelectedBolsaoId(null);
+        setSelectedPopupLngLat(null);
         map.fitBounds(bounds, {
             padding: { top: 60, right: 60, bottom: 60, left: 60 },
             duration: 800,
@@ -233,6 +240,7 @@ export default function MapComponent() {
 
         if (isSameBolsao) {
             setSelectedBolsaoId(null);
+            setSelectedPopupLngLat(null);
             goToInitialView();
 
             return;
@@ -244,6 +252,11 @@ export default function MapComponent() {
         if (!bounds) {
             return;
         }
+
+        setSelectedPopupLngLat({
+            lng: (bounds[0][0] + bounds[1][0]) / 2,
+            lat: (bounds[0][1] + bounds[1][1]) / 2,
+        });
 
         if (!map) {
             return;
@@ -338,15 +351,15 @@ export default function MapComponent() {
                     <Image
                         src="/image.png"
                         alt="Logo Rio Rotativo"
-                        width={55}
-                        height={55}
+                        width={75}
+                        height={75}
                         style={{ marginBottom: 12 }}
                     />
                     <h2 style={{ margin: 0, fontSize: 18, color: '#fff' }}>
                         Estacionamentos Rio Rotativo
                     </h2>
                     <p style={{ margin: '6px 0 0', fontSize: 13, color: '#fff' }}>
-                        {bolsoes.length} registrados
+                        {bolsoes.length} registrados · {totalVagas} vagas
                     </p>
                 </div>
 
@@ -426,6 +439,31 @@ export default function MapComponent() {
                             <Layer {...selectedOutlineLayer} />
                         </Source>
                     )}
+                    {selectedBolsao && selectedPopupLngLat && (
+                        <Popup
+                            longitude={selectedPopupLngLat.lng}
+                            latitude={selectedPopupLngLat.lat}
+                            closeButton
+                            closeOnClick={false}
+                            onClose={() => {
+                                setSelectedBolsaoId(null);
+                                setSelectedPopupLngLat(null);
+                                goToInitialView();
+                            }}
+                            maxWidth="280px"
+                        >
+                            <div style={{ fontSize: 12, color: '#111827', lineHeight: 1.5 }}>
+                                <div style={{ fontWeight: 700, marginBottom: 7 }}>{selectedBolsao.name}</div>
+                                <div><strong>LOGRADOURO:</strong> {selectedBolsao.feature?.properties?.logradouro ?? 'N/A'}</div>
+                                <div><strong>VAGAS DISPONÍVEIS:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_total ?? 'N/A'}</div>
+                                <div><strong>VAGAS PARA MOTOS:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_moto ?? 'N/A'}</div>
+                                <div><strong>VAGAS IDOSO (5%):</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_idoso ?? 'N/A'}</div>
+                                <div><strong>VAGA PCD (2%):</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_pcd ?? 'N/A'}</div>
+                                <div><strong>VAGAS CONUNS:</strong> {selectedBolsao.feature?.properties?.vagas_comuns ?? 'N/A'}</div>
+                                <div><strong>TEMPO DE PERMANÊNCIA:</strong> {selectedBolsao.feature?.properties?.tempo_permanencia_hora ?? 'N/A'}h</div>
+                            </div>
+                        </Popup>
+                    )}
                 </Map>
                 {!bolsoesGeoJSON && !error && (
                     <div style={{
@@ -444,11 +482,11 @@ export default function MapComponent() {
                     aria-label="Controles do mapa"
                     style={{
                         position: 'absolute',
-                        top: 112,
-                        right: 16,
+                        top: 84,
+                        right: 10,
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 8,
+                        gap: 0,
                         zIndex: 10
                     }}
                 >
@@ -459,19 +497,21 @@ export default function MapComponent() {
                         title="Enquadrar todos os bolsoes"
                         onClick={fitAllBolsoes}
                         style={{
-                            minWidth: 42,
-                            height: 42,
-                            padding: '0 10px',
-                            borderRadius: 10,
-                            border: '1px solid #d1d5db',
+                            width: 29,
+                            height: 29,
+                            padding: 0,
+                            borderRadius: 4,
+                            border: 'none',
                             background: '#ffffff',
-                            color: '#0f172a',
-                            fontSize: 24,
+                            color: '#333333',
+                            fontSize: 18,
                             fontWeight: 600,
-                            cursor: 'pointer'
+                            lineHeight: 1,
+                            cursor: 'pointer',
+                            boxShadow: '0 0 0 1px rgb(0 0 0 / 10%), 0 1px 2px rgb(0 0 0 / 10%)'
                         }}
                     >
-                        •
+                        ⦿
                     </button>
                 </div>
             </div>
