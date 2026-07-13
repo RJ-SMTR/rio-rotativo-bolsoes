@@ -58,8 +58,8 @@ export default function MapComponent() {
     );
 
     const initialViewState = {
-        longitude:  -43.211279,
-        latitude: -22.970389,
+        longitude: -43.20887685,
+        latitude: -22.9724913,
         zoom: 15,
         pitch: 0, 
     };
