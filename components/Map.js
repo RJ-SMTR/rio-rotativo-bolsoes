@@ -448,7 +448,6 @@ export default function MapComponent() {
                             onClose={() => {
                                 setSelectedBolsaoId(null);
                                 setSelectedPopupLngLat(null);
-                                goToInitialView();
                             }}
                             maxWidth="280px"
                         >
