@@ -14,7 +14,7 @@ jobs:
       image: riorotativo
       namespace: riorotativo
       ingress_name: riorotativo-ingress
-      ingress_url: riorotativo.mobilidade.rio
+      ingress_url: rotativodigital.mobilidade.rio
       service: riorotativo
       pod_name: riorotativo
       secret_name: riorotativo-ingress
