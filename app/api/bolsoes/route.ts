@@ -14,8 +14,8 @@ const BOLSOES_QUERY = `
     ae.quantidade_vaga_moto,
     ae.tempo_permanencia_hora,
     ARRAY_AGG(DISTINCT pf.nome IGNORE NULLS) AS perfis_funcionamento
-  FROM \`rj-smtr-dev.riorotativo.area_estacionamento\` ae
-  INNER JOIN \`rj-smtr-dev.riorotativo.perfil_funcionamento\` pf
+  FROM \`rj-smtr.riorotativo.area_estacionamento\` ae
+  INNER JOIN \`rj-smtr.riorotativo.perfil_funcionamento\` pf
     ON pf.id_perfil_funcionamento IN UNNEST(ae.id_perfil_funcionamento)
   GROUP BY
     ae.nome,

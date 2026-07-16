@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import Map, { Layer, NavigationControl, Popup, Source } from 'react-map-gl/maplibre';
+import Map, { Layer, Marker, NavigationControl, Popup, Source } from 'react-map-gl/maplibre';
 import Image from 'next/image';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -12,6 +12,8 @@ export default function MapComponent() {
     const [selectedPopupLngLat, setSelectedPopupLngLat] = React.useState(null);
     const [isMobile, setIsMobile] = React.useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+    const [userLocation, setUserLocation] = React.useState(null);
+    const [searchQuery, setSearchQuery] = React.useState('');
     const mapRef = React.useRef(null);
 
     const bolsoesGeoJSONWithIds = React.useMemo(() => {
@@ -48,6 +50,17 @@ export default function MapComponent() {
             feature,
         }));
     }, [bolsoesGeoJSONWithIds]);
+
+    const filteredBolsoes = React.useMemo(() => {
+        if (!searchQuery.trim()) {
+            return bolsoes;
+        }
+
+        const query = searchQuery.toLowerCase().trim();
+        return bolsoes.filter((bolsao) =>
+            bolsao.name.toLowerCase().includes(query)
+        );
+    }, [bolsoes, searchQuery]);
 
     const selectedBolsao = React.useMemo(
         () => bolsoes.find((item) => item.id === selectedBolsaoId) ?? null,
@@ -115,6 +128,33 @@ export default function MapComponent() {
 
         return () => {
             mediaQuery.removeEventListener('change', handleViewportChange);
+        };
+    }, []);
+
+    React.useEffect(() => {
+        if (typeof navigator === 'undefined' || !navigator.geolocation) {
+            return undefined;
+        }
+
+        const watchId = navigator.geolocation.watchPosition(
+            (position) => {
+                setUserLocation({
+                    lng: position.coords.longitude,
+                    lat: position.coords.latitude,
+                });
+            },
+            () => {
+                setUserLocation(null);
+            },
+            {
+                enableHighAccuracy: true,
+                maximumAge: 10000,
+                timeout: 10000,
+            }
+        );
+
+        return () => {
+            navigator.geolocation.clearWatch(watchId);
         };
     }, []);
 
@@ -254,6 +294,49 @@ export default function MapComponent() {
             padding: { top: 60, right: 60, bottom: 60, left: 60 },
             duration: 800,
             maxZoom: 15,
+        });
+    }
+
+    function centerOnUserLocation() {
+        const map = mapRef.current?.getMap?.();
+        if (!map) {
+            return;
+        }
+
+        if (!userLocation) {
+            if (typeof navigator === 'undefined' || !navigator.geolocation) {
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const nextLocation = {
+                        lng: position.coords.longitude,
+                        lat: position.coords.latitude,
+                    };
+
+                    setUserLocation(nextLocation);
+                    map.easeTo({
+                        center: [nextLocation.lng, nextLocation.lat],
+                        zoom: Math.max(map.getZoom(), 17),
+                        duration: 800,
+                    });
+                },
+                () => {
+                    // Ignore errors in debug action; watcher may still resolve later.
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                }
+            );
+            return;
+        }
+
+        map.easeTo({
+            center: [userLocation.lng, userLocation.lat],
+            zoom: Math.max(map.getZoom(), 17),
+            duration: 800,
         });
     }
 
@@ -412,8 +495,25 @@ export default function MapComponent() {
                         Estacionamentos Rio Rotativo
                     </h2>
                     <p style={{ margin: '6px 0 0', fontSize: 13, color: '#fff' }}>
-                        {bolsoes.length} registrados · {totalVagas} vagas
+                        {filteredBolsoes.length} de {bolsoes.length} · {totalVagas} vagas
                     </p>
+                </div>
+
+                <div style={{ padding: '8px 12px' }}>
+                    <input
+                        type="text"
+                        placeholder="Buscar estacionamento..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: 6,
+                            border: '1px solid #bfdbfe',
+                            fontSize: 13,
+                            boxSizing: 'border-box'
+                        }}
+                    />
                 </div>
 
                 <div style={{ overflowY: 'auto', padding: 12, flex: 1 }}>
@@ -438,7 +538,11 @@ export default function MapComponent() {
                         <p style={{ margin: 0, color: '#6b7280', fontSize: 14 }}>Nenhum estacionamento encontrado.</p>
                     )}
 
-                    {bolsoes.map((bolsao) => {
+                    {!error && bolsoesGeoJSON && bolsoes.length > 0 && filteredBolsoes.length === 0 && (
+                        <p style={{ margin: 0, color: '#6b7280', fontSize: 14 }}>Nenhum resultado para sua busca.</p>
+                    )}
+
+                    {filteredBolsoes.map((bolsao) => {
                         const isSelected = bolsao.id === selectedBolsaoId;
 
                         return (
@@ -555,8 +659,8 @@ export default function MapComponent() {
                                 <div><strong>LOGRADOURO:</strong> {selectedBolsao.feature?.properties?.logradouro ?? 'N/A'}</div>
                                 <div><strong>VAGAS DISPONÍVEIS:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_total ?? 'N/A'}</div>
                                 <div><strong>VAGAS PARA MOTOS:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_moto ?? 'N/A'}</div>
-                                <div><strong>VAGAS IDOSO (5%):</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_idoso ?? 'N/A'}</div>
-                                <div><strong>VAGA PCD (2%):</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_pcd ?? 'N/A'}</div>
+                                <div><strong>VAGAS IDOSO:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_idoso ?? 'N/A'}</div>
+                                <div><strong>VAGA PCD:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_pcd ?? 'N/A'}</div>
                                 <div><strong>TEMPO DE PERMANÊNCIA:</strong> {selectedBolsao.feature?.properties?.tempo_permanencia_hora ?? 'N/A'}h</div>
                                 {selectedBolsao.feature?.properties?.description && (
                                     <div style={{ marginTop: 8 }}>
@@ -572,6 +676,26 @@ export default function MapComponent() {
                                 )}
                             </div>
                         </Popup>
+                    )}
+                    {userLocation && (
+                        <Marker
+                            longitude={userLocation.lng}
+                            latitude={userLocation.lat}
+                            anchor="bottom"
+                        >
+                            <div
+                                aria-label="Sua localizacao"
+                                title="Sua localizacao"
+                                style={{
+                                    width: 16,
+                                    height: 16,
+                                    borderRadius: '50%',
+                                    background: '#2563eb',
+                                    border: '3px solid #ffffff',
+                                    boxShadow: '0 0 0 2px rgb(37 99 235 / 35%)',
+                                }}
+                            />
+                        </Marker>
                     )}
                 </Map>
                 {!bolsoesGeoJSON && !error && (
@@ -591,7 +715,7 @@ export default function MapComponent() {
                     aria-label="Controles do mapa"
                     style={{
                         position: 'absolute',
-                        top: isMobile ? 56 : 84,
+                        top: isMobile ? 85 : 84,
                         right: 10,
                         display: 'flex',
                         flexDirection: 'column',
@@ -622,6 +746,27 @@ export default function MapComponent() {
                     >
                         ⦿
                     </button>
+                    {/* <button
+                        type="button"
+                        aria-label="Debug: centralizar na minha localizacao"
+                        title="Debug: centralizar na minha localizacao"
+                        onClick={centerOnUserLocation}
+                        style={{
+                            marginTop: 8,
+                            padding: '6px 8px',
+                            borderRadius: 4,
+                            border: 'none',
+                            background: '#2563eb',
+                            color: '#ffffff',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            lineHeight: 1.2,
+                            cursor: 'pointer',
+                            boxShadow: '0 0 0 1px rgb(0 0 0 / 10%), 0 1px 2px rgb(0 0 0 / 10%)'
+                        }}
+                    >
+                        Debug\nme
+                    </button> */}
                 </div>
             </div>
         </div>
