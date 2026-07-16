@@ -63,7 +63,7 @@ export default function MapComponent() {
 
         return result.sort((a, b) => {
             const normalize = (str) => {
-                return str.replace(/\s+/g, ' ').replace(/\s*-\s*/g, '-').trim();
+             return str.replace(/\s+/g, ' ').replace(/\s*-\s*/g, '-').trim();
             };
             const aNorm = normalize(a.name);
             const bNorm = normalize(b.name);
