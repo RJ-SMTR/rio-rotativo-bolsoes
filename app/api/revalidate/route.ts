@@ -1,8 +1,8 @@
-import { revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 
 export async function POST() {
   try {
-    revalidateTag("bolsoes");
+    revalidatePath("/", "layout");
     return new Response(
       JSON.stringify({ 
         revalidated: true, 
