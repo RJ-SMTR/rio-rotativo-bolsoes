@@ -52,14 +52,24 @@ export default function MapComponent() {
     }, [bolsoesGeoJSONWithIds]);
 
     const filteredBolsoes = React.useMemo(() => {
-        if (!searchQuery.trim()) {
-            return bolsoes;
+        let result = bolsoes;
+        
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase().trim();
+            result = bolsoes.filter((bolsao) =>
+                bolsao.name.toLowerCase().includes(query)
+            );
         }
 
-        const query = searchQuery.toLowerCase().trim();
-        return bolsoes.filter((bolsao) =>
-            bolsao.name.toLowerCase().includes(query)
-        );
+        return result.sort((a, b) => {
+            const normalize = (str) => {
+                return str.replace(/\s+/g, ' ').replace(/\s*-\s*/g, '-').trim();
+            };
+            const aNorm = normalize(a.name);
+            const bNorm = normalize(b.name);
+            
+            return aNorm.localeCompare(bNorm, undefined, { numeric: true, sensitivity: 'base' });
+        });
     }, [bolsoes, searchQuery]);
 
     const selectedBolsao = React.useMemo(
@@ -657,7 +667,7 @@ export default function MapComponent() {
                                     </div>
                                 )}
                                 <div><strong>LOGRADOURO:</strong> {selectedBolsao.feature?.properties?.logradouro ?? 'N/A'}</div>
-                                <div><strong>VAGAS DISPONÍVEIS:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_total ?? 'N/A'}</div>
+                                <div><strong>TOTAL DE VAGAS:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_total ?? 'N/A'}</div>
                                 <div><strong>VAGAS PARA MOTOS:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_moto ?? 'N/A'}</div>
                                 <div><strong>VAGAS IDOSO:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_idoso ?? 'N/A'}</div>
                                 <div><strong>VAGA PCD:</strong> {selectedBolsao.feature?.properties?.quantidade_vaga_pcd ?? 'N/A'}</div>
